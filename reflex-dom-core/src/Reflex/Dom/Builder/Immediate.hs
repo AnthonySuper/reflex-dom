@@ -2,7 +2,6 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DataKinds #-}
-{-# LANGUAGE DefaultSignatures #-}
 {-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
@@ -15,7 +14,6 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RecursiveDo #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE StandaloneDeriving #-}
 #ifdef USE_TEMPLATE_HASKELL
 {-# LANGUAGE TemplateHaskell #-}
 #endif
@@ -339,8 +337,7 @@ wrap e cfg = do
       case DMap.lookup en eventTriggerRefs of
         Just (EventFilterTriggerRef r) -> do
           writeIORef r $ Just t
-          return $ do
-            writeIORef r Nothing
+          return $ writeIORef r Nothing
         Nothing -> (`runJSM` ctx) <$> (`runJSM` ctx) (elementOnEventName en e $ do
           evt <- DOM.event
           mv <- lift $ unGhcjsEventHandler h (en, GhcjsDomEvent evt)
@@ -482,7 +479,7 @@ instance SupportsImmediateDomBuilder t m => DomBuilder t (ImmediateDomBuilderT t
       , valueChangedByUI
       ]
     Input.setChecked domInputElement $ _inputElementConfig_initialChecked cfg
-    checkedChangedByUI <- wrapDomEvent domInputElement (`on` Events.click) $ do
+    checkedChangedByUI <- wrapDomEvent domInputElement (`on` Events.click) $
       Input.getChecked domInputElement
     checkedChangedBySetChecked <- case _inputElementConfig_setChecked cfg of
       Nothing -> return never
@@ -619,7 +616,7 @@ instance (Reflex t, Adjustable t m, MonadJSM m, MonadHold t m, MonadFix m, PrimM
     let parentUnreadyChildren = _immediateDomBuilderEnv_unreadyChildren initialEnv
     haveEverBeenReady <- liftIO $ newIORef False
     currentCohort <- liftIO $ newIORef (-1 :: Int) -- Equal to the cohort currently in the DOM
-    let myCommitAction = do
+    let myCommitAction =
           liftIO (readIORef haveEverBeenReady) >>= \case
             True -> return ()
             False -> do
@@ -677,7 +674,7 @@ instance (Reflex t, Adjustable t m, MonadJSM m, MonadHold t m, MonadFix m, PrimM
     let updateChildUnreadiness (p :: PatchDMapWithMove k (Compose ((,,,) DOM.DocumentFragment DOM.Text (IORef (ChildReadyState k))) v')) old = do
           let new :: forall a. k a -> PatchDMapWithMove.NodeInfo k (Compose ((,,,) DOM.DocumentFragment DOM.Text (IORef (ChildReadyState k))) v') a -> IO (PatchDMapWithMove.NodeInfo k (Constant (IORef (ChildReadyState k))) a)
               new k = PatchDMapWithMove.nodeInfoMapFromM $ \case
-                PatchDMapWithMove.From_Insert (Compose (_, _, sRef, _)) -> do
+                PatchDMapWithMove.From_Insert (Compose (_, _, sRef, _)) ->
                   readIORef sRef >>= \case
                     ChildReadyState_Ready -> return PatchDMapWithMove.From_Delete
                     ChildReadyState_Unready _ -> do
@@ -704,7 +701,7 @@ instance (Reflex t, Adjustable t m, MonadJSM m, MonadHold t m, MonadFix m, PrimM
               False -> do
                 mapM_ (`deleteUpTo` nextPlaceholder) mThisPlaceholder
                 return $ Constant Nothing
-              True -> do
+              True ->
                 Constant <$> mapM (`collectUpTo` nextPlaceholder) mThisPlaceholder
       collected <- DMap.traverseWithKey collectIfMoved p
       let !phsAfter = fromMaybe phsBefore $ apply (weakenPatchDMapWithMoveWith (\(Compose (_, ph, _, _)) -> ph) p_) phsBefore --TODO: Don't recompute this
@@ -712,9 +709,9 @@ instance (Reflex t, Adjustable t m, MonadJSM m, MonadHold t m, MonadFix m, PrimM
           placeFragment k e = do
             let nextPlaceholder = maybe lastPlaceholder snd $ Map.lookupGT (Some.This k) phsAfter
             case PatchDMapWithMove._nodeInfo_from e of
-              PatchDMapWithMove.From_Insert (Compose (df, _, _, _)) -> do
+              PatchDMapWithMove.From_Insert (Compose (df, _, _, _)) -> 
                 df `insertBefore` nextPlaceholder
-              PatchDMapWithMove.From_Delete -> do
+              PatchDMapWithMove.From_Delete ->
                 return ()
               PatchDMapWithMove.From_Move fromKey -> do
                 Just (Constant mdf) <- return $ DMap.lookup fromKey collected
@@ -730,7 +727,7 @@ traverseDMapWithKeyWithAdjust' = do
         let new :: forall a. k a -> ComposeMaybe (Compose ((,,,) DOM.DocumentFragment DOM.Text (IORef (ChildReadyState k))) v') a -> IO (ComposeMaybe (Constant (IORef (ChildReadyState k))) a)
             new k (ComposeMaybe m) = ComposeMaybe <$> case m of
               Nothing -> return Nothing
-              Just (Compose (_, _, sRef, _)) -> do
+              Just (Compose (_, _, sRef, _)) ->
                 readIORef sRef >>= \case
                   ChildReadyState_Ready -> return Nothing -- Delete this child, since it's ready
                   ChildReadyState_Unready _ -> do
@@ -758,7 +755,7 @@ traverseIntMapWithKeyWithAdjust' = do
         let new :: IntMap.Key -> Maybe (DOM.DocumentFragment, DOM.Text, IORef ChildReadyStateInt, v') -> IO (Maybe (IORef ChildReadyStateInt))
             new k m = case m of
               Nothing -> return Nothing
-              Just (_, _, sRef, _) -> do
+              Just (_, _, sRef, _) -> 
                 readIORef sRef >>= \case
                   ChildReadyStateInt_Ready -> return Nothing -- Delete this child, since it's ready
                   ChildReadyStateInt_Unready _ -> do
@@ -825,7 +822,7 @@ hoistTraverseIntMapWithKeyWithAdjust base updateChildUnreadiness applyDomUpdate_
         applyDomUpdate_ placeholders lastPlaceholderRef p
         markSelfReady
         liftIO $ writeIORef pendingChange $! mempty
-      markSelfReady = do
+      markSelfReady =
         liftIO (readIORef haveEverBeenReady) >>= \case
           True -> return ()
           False -> do

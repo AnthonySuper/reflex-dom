@@ -226,7 +226,7 @@ elDynAttrNS' mns elementTag attrs child = do
 
 {-# INLINABLE elDynAttrNS #-}
 elDynAttrNS :: forall t m a. (DomBuilder t m, PostBuild t m) => Maybe Text -> Text -> Dynamic t (Map Text Text) -> m a -> m a
-elDynAttrNS mns elementTag attrs child = fmap snd $ elDynAttrNS' mns elementTag attrs child
+elDynAttrNS mns elementTag attrs child = snd <$> elDynAttrNS' mns elementTag attrs child
 
 dynamicAttributesToModifyAttributes :: (Ord k, PostBuild t m) => Dynamic t (Map k Text) -> m (Event t (Map k (Maybe Text)))
 dynamicAttributesToModifyAttributes = dynamicAttributesToModifyAttributesWithInitial mempty

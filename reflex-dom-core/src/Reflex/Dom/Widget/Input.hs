@@ -7,7 +7,6 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PolyKinds #-}
-{-# LANGUAGE RecursiveDo #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 #ifdef USE_TEMPLATE_HASKELL
 {-# LANGUAGE TemplateHaskell #-}
@@ -340,7 +339,7 @@ fileInput config = do
   let insertType = Map.insert "type" "file"
       dAttrs = insertType <$> _fileInputConfig_attributes config
   modifyAttrs <- dynamicAttributesToModifyAttributes dAttrs
-  let filters = DMap.singleton Change . GhcjsEventFilter $ \_ -> do
+  let filters = DMap.singleton Change . GhcjsEventFilter $ \_ -> 
         return . (,) mempty $ return . Just $ EventResult ()
       elCfg = (def :: ElementConfig EventResult t (DomBuilderSpace m))
         & modifyAttributes .~ fmap mapKeysToAttributeName modifyAttrs

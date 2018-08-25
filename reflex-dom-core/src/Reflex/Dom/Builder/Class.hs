@@ -2,7 +2,6 @@
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DefaultSignatures #-}
-{-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FunctionalDependencies #-}
@@ -10,12 +9,10 @@
 #if !MIN_VERSION_base(4,9,0)
 {-# LANGUAGE ImpredicativeTypes #-}
 #endif
-{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PolyKinds #-}
 {-# LANGUAGE RankNTypes #-}
-{-# LANGUAGE RecursiveDo #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StandaloneDeriving #-}
 #ifdef USE_TEMPLATE_HASKELL
@@ -122,7 +119,7 @@ class (Monad m, Reflex t, DomSpace (DomBuilderSpace m), NotReady t m, Adjustable
                            , DomBuilder t m'
                            )
                         => SelectElementConfig er t (DomBuilderSpace m) -> m a -> m (SelectElement er (DomBuilderSpace m) t, a)
-  selectElement cfg child = do
+  selectElement cfg child =
     liftWith $ \run -> selectElement cfg $ run child
   {-# INLINABLE selectElement #-}
   placeRawElement :: RawElement (DomBuilderSpace m) -> m ()
